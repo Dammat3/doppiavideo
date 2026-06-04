@@ -1,7 +1,7 @@
 fastapi==0.111.0
 uvicorn[standard]==0.30.1
 python-multipart==0.0.9
-openai-whisper==20231117
+faster-whisper
 edge-tts==6.1.10
 deep-translator==1.11.4
 ffmpeg-python==0.2.0
