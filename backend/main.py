@@ -22,6 +22,7 @@ SILENCE_MIN_DUR   = 0.5            # secondi minimi di silenzio per taglio
 MAX_TEXT_CHARS    = 25_000
 JOB_TTL_HOURS     = 2
 WHISPER_MODEL     = "tiny"        # tiny = ~200MB RAM
+UNLOAD_AFTER_JOB  = True          # scarica modello dalla RAM dopo ogni job
 # ────────────────────────────────────────────────────────
 
 app = FastAPI(title="Doppiaggio IA API")
@@ -43,6 +44,15 @@ def get_whisper_model():
         )
     return _whisper_model
 
+def unload_whisper_model():
+    """Scarica il modello dalla RAM per liberare memoria dopo il job."""
+    global _whisper_model
+    if _whisper_model is not None and UNLOAD_AFTER_JOB:
+        del _whisper_model
+        _whisper_model = None
+        import gc
+        gc.collect()
+
 jobs: dict = {}
 
 VOICES = {
@@ -53,8 +63,7 @@ VOICES = {
 
 @app.on_event("startup")
 async def startup_event():
-    import threading
-    threading.Thread(target=get_whisper_model, daemon=True).start()
+    pass  # modello caricato on-demand per risparmiare RAM
 
 @app.get("/health")
 async def health():
@@ -224,6 +233,9 @@ async def process_video(job_id: str, video_path: Path, voice: str, source_lang: 
 
         if not transcript.strip():
             raise Exception("Nessun parlato rilevato nel video.")
+
+        # Scarica Whisper dalla RAM — non serve più
+        unload_whisper_model()
 
         # ── Step 3: Traduci (in chunk per Google Translate) ──
         update_job(job_id, step=3, step_name="Traduzione in italiano...", progress=45)
