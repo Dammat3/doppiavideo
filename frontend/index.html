@@ -189,7 +189,7 @@ nav{position:sticky;top:0;z-index:100;background:rgba(245,242,236,.92);backdrop-
 
     <div class="limit-info">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-      <span>Piano gratuito: max <strong>200MB</strong> e <strong>15 minuti</strong> per video. Il server può impiegare fino a 50 secondi a rispondere dopo inattività.</span>
+      <span>Max <strong>500MB</strong> e <strong>30 minuti</strong> per video. I video lunghi vengono elaborati a segmenti da 5 min. Il server può impiegare ~50 secondi a svegliarsi dopo inattività.</span>
     </div>
 
     <div class="file-selected" id="fileSelected">
@@ -262,7 +262,7 @@ nav{position:sticky;top:0;z-index:100;background:rgba(245,242,236,.92);backdrop-
 
 <script>
 const STEPS = [
-  "Estrazione audio",
+  "Suddivisione in segmenti",
   "Trascrizione (Whisper AI)",
   "Traduzione in italiano",
   "Sintesi voce italiana",
@@ -402,12 +402,15 @@ function renderQueue(statuses) {
 
     const badgeLabel = { queued:'in coda', processing:'elaborazione', done:'✓ pronto', error:'✗ errore' };
 
+    const chunkInfo = (s.step === 2 && s.n_chunks > 1)
+      ? ` (segmento ${s.chunk_current || 1}/${s.n_chunks})` : '';
     const stepsHtml = (s.status === 'processing') ? `
       <div class="steps-detail show">
         ${STEPS.map((lbl, idx) => {
           const sIdx = idx + 1;
           const cls  = sIdx < step ? 'done' : sIdx === step ? 'active' : 'wait';
-          return `<div class="step-row"><div class="step-dot ${cls}"></div><span class="step-lbl ${cls}">${lbl}</span></div>`;
+          const extra = (sIdx === 2) ? chunkInfo : '';
+          return `<div class="step-row"><div class="step-dot ${cls}"></div><span class="step-lbl ${cls}">${lbl}${extra}</span></div>`;
         }).join('')}
       </div>` : '';
 
