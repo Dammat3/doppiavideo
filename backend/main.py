@@ -16,7 +16,7 @@ import ffmpeg
 # ── Config ──────────────────────────────────────────────
 MAX_FILE_SIZE_MB  = 500
 MAX_DURATION_SEC  = 30 * 60       # 30 minuti
-CHUNK_DURATION    = 10 * 60       # 10 minuti per chunk (max)
+CHUNK_DURATION    = 5 * 60        # 5 minuti per chunk (ridotto per RAM)
 SILENCE_THRESH    = -35            # dB soglia silenzio
 SILENCE_MIN_DUR   = 0.5            # secondi minimi di silenzio per taglio
 MAX_TEXT_CHARS    = 25_000
@@ -215,16 +215,20 @@ async def process_video(job_id: str, video_path: Path, voice: str, source_lang: 
             segments, info = model.transcribe(
                 str(chunk_audio),
                 language=detect_lang,
-                beam_size=5,
-                best_of=3,
+                beam_size=1,       # ridotto da 5 — meno RAM
+                best_of=1,         # ridotto da 3 — meno RAM
                 temperature=0.0,
                 vad_filter=True,
             )
+            # Forza la valutazione del generatore lazy prima di liberare memoria
             chunk_text = " ".join(seg.text.strip() for seg in segments)
             full_transcript.append(chunk_text)
             if detect_lang is None:
                 detect_lang = info.language  # usa la lingua rilevata per i chunk successivi
             chunk_audio.unlink(missing_ok=True)
+            # Libera memoria dopo ogni chunk
+            import gc
+            gc.collect()
 
         transcript    = " ".join(full_transcript).strip()
         detected_lang = detect_lang or "unknown"
