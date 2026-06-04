@@ -1,0 +1,11 @@
+backend/uploads/
+backend/outputs/
+backend/venv/
+__pycache__/
+*.pyc
+*.mp4
+*.mp3
+*.wav
+*.avi
+*.mov
+*.mkv

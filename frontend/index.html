@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DoppiaVideo — Doppiaggio automatico in italiano</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F5F2EC;--surface:#FFF;--surface2:#F0EDE6;
+  --text:#1A1814;--text2:#6B6760;--text3:#A8A5A0;
+  --border:rgba(26,24,20,.1);--border2:rgba(26,24,20,.18);
+  --accent:#2A4BFF;--accent-light:#EEF1FF;--accent-text:#1530CC;
+  --success:#166534;--success-bg:#DCFCE7;
+  --error:#991B1B;--error-bg:#FEE2E2;
+  --warning:#92400E;--warning-bg:#FEF3C7;
+  --orange:#C2410C;--orange-bg:#FFF7ED;
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(245,242,236,.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:60px}
+.logo{font-family:'DM Serif Display',serif;font-size:22px;letter-spacing:-.5px;display:flex;align-items:center;gap:8px}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block}
+.nav-badge{font-size:11px;font-weight:500;letter-spacing:.05em;padding:3px 10px;border-radius:100px;background:var(--accent-light);color:var(--accent-text);border:1px solid rgba(42,75,255,.15)}
+
+/* HERO */
+.hero{max-width:720px;margin:0 auto;padding:4rem 2rem 2.5rem;text-align:center}
+.hero-eyebrow{font-size:12px;letter-spacing:.12em;font-weight:500;color:var(--text3);text-transform:uppercase;margin-bottom:1rem}
+.hero h1{font-family:'DM Serif Display',serif;font-size:clamp(32px,5vw,52px);line-height:1.1;letter-spacing:-1.5px;margin-bottom:1rem}
+.hero h1 em{font-style:italic;color:var(--accent)}
+.hero p{font-size:16px;color:var(--text2);max-width:480px;margin:0 auto 2rem;line-height:1.7}
+.tech-pills{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:2.5rem}
+.pill{font-size:12px;font-weight:500;padding:5px 12px;border-radius:100px;background:var(--surface);border:1px solid var(--border2);color:var(--text2)}
+
+/* LAYOUT */
+.main{max-width:720px;margin:0 auto;padding:0 2rem 5rem;display:grid;gap:16px}
+
+/* UPLOAD CARD */
+.card{background:var(--surface);border:1px solid var(--border2);border-radius:20px;overflow:hidden}
+.card-header{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.card-title{font-size:16px;font-weight:500}
+.card-sub{font-size:13px;color:var(--text2);margin-left:auto}
+
+/* UPLOAD ZONE */
+.upload-zone{margin:1.5rem;border:2px dashed var(--border2);border-radius:14px;padding:2.5rem 2rem;text-align:center;cursor:pointer;transition:all .2s;position:relative}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--accent);background:var(--accent-light)}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-icon{width:48px;height:48px;border-radius:12px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;margin:0 auto .75rem}
+.upload-title{font-size:15px;font-weight:500;margin-bottom:4px}
+.upload-sub{font-size:13px;color:var(--text3)}
+.upload-sub span{color:var(--accent);font-weight:500}
+
+/* SETTINGS */
+.settings{padding:0 1.5rem 1.5rem;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field label{display:block;font-size:11px;font-weight:500;color:var(--text2);letter-spacing:.04em;text-transform:uppercase;margin-bottom:5px}
+.field select{width:100%;padding:9px 32px 9px 12px;border:1px solid var(--border2);border-radius:10px;background:var(--surface2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B6760' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;transition:border-color .15s}
+.field select:focus{outline:none;border-color:var(--accent)}
+
+/* BUTTON */
+.btn-wrap{padding:0 1.5rem 1.5rem}
+.btn-primary{width:100%;padding:13px;background:var(--text);color:var(--bg);border:none;border-radius:12px;font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s}
+.btn-primary:hover{background:#000;transform:translateY(-1px)}
+.btn-primary:active{transform:translateY(0)}
+.btn-primary:disabled{background:var(--text3);cursor:not-allowed;transform:none}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+/* ERROR */
+.error-box{display:none;margin:0 1.5rem 1.5rem;background:var(--error-bg);border:1px solid rgba(153,27,27,.2);border-radius:10px;padding:.75rem 1rem;font-size:13px;color:var(--error)}
+.error-box.show{display:block}
+
+/* API CONFIG */
+.api-notice{background:var(--warning-bg);border:1px solid rgba(146,64,14,.2);border-radius:14px;padding:1rem 1.25rem;font-size:13px;color:var(--warning)}
+.api-notice strong{display:block;font-weight:500;margin-bottom:6px}
+.api-row{display:flex;gap:8px;margin-top:8px}
+.api-input{flex:1;padding:7px 10px;border:1px solid rgba(146,64,14,.3);border-radius:8px;background:#fff;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text)}
+.api-input:focus{outline:none;border-color:var(--warning)}
+.api-btn{padding:7px 14px;border-radius:8px;background:var(--warning);color:#fff;border:none;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;font-weight:500}
+
+/* QUEUE CARD */
+.queue-card{display:none}
+.queue-card.show{display:block}
+.queue-empty{padding:2rem;text-align:center;color:var(--text3);font-size:14px}
+
+/* JOB ITEM */
+.job-item{padding:1rem 1.5rem;border-bottom:1px solid var(--border);transition:background .15s}
+.job-item:last-child{border-bottom:none}
+.job-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.job-thumb{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.job-thumb.queued{background:var(--surface2);color:var(--text3)}
+.job-thumb.processing{background:var(--accent-light);color:var(--accent)}
+.job-thumb.done{background:var(--success-bg);color:var(--success)}
+.job-thumb.error{background:var(--error-bg);color:var(--error)}
+.job-info{flex:1;min-width:0}
+.job-name{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.job-step{font-size:12px;color:var(--text2);margin-top:1px}
+.job-actions{display:flex;gap:6px;flex-shrink:0}
+.btn-dl{padding:5px 12px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+.btn-dl:hover{background:var(--accent-text)}
+.btn-del{width:28px;height:28px;border-radius:8px;border:1px solid var(--border2);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text3);transition:all .15s}
+.btn-del:hover{background:var(--error-bg);color:var(--error);border-color:var(--error)}
+
+/* PROGRESS BAR */
+.job-progress{height:4px;background:var(--border);border-radius:100px;overflow:hidden;margin-top:6px}
+.job-progress-fill{height:100%;border-radius:100px;transition:width .5s ease}
+.job-progress-fill.processing{background:var(--accent)}
+.job-progress-fill.done{background:#16a34a}
+.job-progress-fill.error{background:var(--error)}
+.job-progress-fill.queued{background:var(--text3)}
+
+/* STATUS BADGE */
+.status-badge{font-size:11px;font-weight:500;padding:2px 8px;border-radius:100px;flex-shrink:0}
+.status-badge.queued{background:var(--surface2);color:var(--text3)}
+.status-badge.processing{background:var(--accent-light);color:var(--accent-text)}
+.status-badge.done{background:var(--success-bg);color:var(--success)}
+.status-badge.error{background:var(--error-bg);color:var(--error)}
+
+/* TRANSLATION PREVIEW */
+.translation-box{margin:0 1.5rem 1rem;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.75rem 1rem;display:none}
+.translation-box.show{display:block}
+.translation-label{font-size:11px;font-weight:500;letter-spacing:.08em;color:var(--text3);text-transform:uppercase;margin-bottom:5px}
+.translation-text{font-size:13px;color:var(--text2);line-height:1.6;max-height:70px;overflow-y:auto}
+
+@media(max-width:480px){.settings{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo"><span class="logo-dot"></span>DoppiaVideo</div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <span class="nav-badge">100% Gratuito</span>
+    <button onclick="toggleSettings()" title="Impostazioni server" style="background:none;border:1px solid var(--border2);border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    </button>
+  </div>
+
+  <!-- Settings panel -->
+  <div id="settingsPanel" style="display:none;position:fixed;top:68px;right:2rem;background:var(--surface);border:1px solid var(--border2);border-radius:14px;padding:1rem 1.25rem;z-index:200;width:300px;box-shadow:0 8px 24px rgba(0,0,0,.1)">
+    <div style="font-size:13px;font-weight:500;margin-bottom:8px">URL Backend</div>
+    <div style="display:flex;gap:8px">
+      <input id="serverUrlInput" type="text" value="" style="flex:1;padding:7px 10px;border:1px solid var(--border2);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);background:var(--surface2)">
+      <button onclick="saveServerUrl()" style="padding:7px 14px;border-radius:8px;background:var(--text);color:var(--bg);border:none;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;font-weight:500">Salva</button>
+    </div>
+    <div style="font-size:12px;color:var(--text3);margin-top:6px">Default: http://localhost:8000</div>
+  </div>
+</nav>
+
+<section class="hero">
+  <p class="hero-eyebrow">Doppiaggio automatico AI</p>
+  <h1>Parla italiano,<br><em>senza sforzo</em></h1>
+  <p>Carica uno o più video e ottieni il doppiaggio automatico in italiano. I video vengono elaborati in coda, uno dopo l'altro.</p>
+  <div class="tech-pills">
+    <span class="pill">🎙 Whisper (OpenAI)</span>
+    <span class="pill">🌐 DeepL + Google Translate</span>
+    <span class="pill">🔊 EdgeTTS (Microsoft)</span>
+    <span class="pill">🎬 FFmpeg</span>
+  </div>
+</section>
+
+<div class="main">
+
+  <!-- Upload Card -->
+  <div class="card">
+    <div class="card-header">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>
+      <span class="card-title">Aggiungi video</span>
+      <span class="card-sub">MP4, MOV, AVI, MKV · max 500MB · max 30 min</span>
+    </div>
+
+    <div class="upload-zone" id="uploadZone">
+      <input type="file" id="fileInput" accept="video/*" onchange="handleFileSelect(event)">
+      <div class="upload-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+      </div>
+      <div class="upload-title">Trascina il video qui</div>
+      <div class="upload-sub">o <span>sfoglia i file</span></div>
+    </div>
+
+    <div class="settings">
+      <div class="field">
+        <label>Lingua originale</label>
+        <select id="sourceLang">
+          <option value="auto">Rilevamento automatico</option>
+          <option value="en">Inglese</option>
+          <option value="es">Spagnolo</option>
+          <option value="fr">Francese</option>
+          <option value="de">Tedesco</option>
+          <option value="pt">Portoghese</option>
+          <option value="zh">Cinese</option>
+          <option value="ja">Giapponese</option>
+          <option value="ar">Arabo</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Voce italiana</label>
+        <select id="voiceSelect">
+          <option value="isabella">Isabella (F) — naturale</option>
+          <option value="diego">Diego (M) — naturale</option>
+          <option value="elsa">Elsa (F) — formale</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="btn-wrap">
+      <button class="btn-primary" id="addBtn" onclick="addToQueue()" disabled>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+        Seleziona un video prima
+      </button>
+    </div>
+    <div class="error-box" id="errorBox"></div>
+  </div>
+
+  <!-- Queue Card -->
+  <div class="card queue-card" id="queueCard">
+    <div class="card-header">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      <span class="card-title">Coda di elaborazione</span>
+      <span class="card-sub" id="queueCount">0 video</span>
+    </div>
+    <div id="jobsList"></div>
+  </div>
+
+</div>
+
+<script>
+let apiBaseUrl = localStorage.getItem('apiBaseUrl') || 'http://localhost:8000';
+let selectedFile = null;
+let queueJobs = [];
+let pollTimer = null;
+
+// Init settings panel
+document.getElementById('serverUrlInput').value = apiBaseUrl;
+
+function toggleSettings() {
+  const p = document.getElementById('settingsPanel');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+  document.getElementById('serverUrlInput').value = apiBaseUrl;
+}
+
+function saveServerUrl() {
+  apiBaseUrl = document.getElementById('serverUrlInput').value.trim().replace(/\/$/, '') || 'http://localhost:8000';
+  localStorage.setItem('apiBaseUrl', apiBaseUrl);
+  document.getElementById('settingsPanel').style.display = 'none';
+}
+
+// Chiudi panel cliccando fuori
+document.addEventListener('click', e => {
+  const panel = document.getElementById('settingsPanel');
+  if (!panel.contains(e.target) && !e.target.closest('button[onclick="toggleSettings()"]')) {
+    panel.style.display = 'none';
+  }
+});
+
+// ── Drag & Drop ──────────────────────────────────────
+const zone = document.getElementById('uploadZone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+zone.addEventListener('drop', e => {
+  e.preventDefault(); zone.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith('video/')) setFile(f);
+});
+
+function handleFileSelect(e) {
+  const f = e.target.files[0];
+  if (f) setFile(f);
+}
+
+function setFile(file) {
+  if (file.size > 500 * 1024 * 1024) {
+    showError('❌ File troppo grande. Limite: 500 MB'); return;
+  }
+  selectedFile = file;
+  const btn = document.getElementById('addBtn');
+  btn.disabled = false;
+  btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Aggiungi alla coda: <strong style="margin-left:4px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${file.name}</strong>`;
+  document.getElementById('errorBox').classList.remove('show');
+}
+
+// ── Aggiungi alla coda ───────────────────────────────
+async function addToQueue() {
+  if (!selectedFile) return;
+  const btn = document.getElementById('addBtn');
+  btn.disabled = true;
+  btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg> Caricamento...`;
+
+  const formData = new FormData();
+  formData.append('file', selectedFile);
+  formData.append('voice', document.getElementById('voiceSelect').value);
+  formData.append('source_lang', document.getElementById('sourceLang').value);
+
+  try {
+    const resp = await fetch(`${apiBaseUrl}/dub`, { method: 'POST', body: formData });
+    if (!resp.ok) { const e = await resp.json(); throw new Error(e.detail || 'Errore server'); }
+    const data = await resp.json();
+
+    queueJobs.push({ job_id: data.job_id, filename: selectedFile.name });
+    selectedFile = null;
+    document.getElementById('fileInput').value = '';
+    btn.disabled = true;
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Seleziona un video prima`;
+    document.getElementById('queueCard').classList.add('show');
+    if (!pollTimer) pollTimer = setInterval(pollAllJobs, 2000);
+    pollAllJobs();
+  } catch(e) {
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg> Aggiungi alla coda`;
+    showError('❌ ' + e.message);
+  }
+}
+
+// ── Polling status ───────────────────────────────────
+async function pollAllJobs() {
+  if (queueJobs.length === 0) { clearInterval(pollTimer); pollTimer = null; return; }
+
+  const statuses = await Promise.all(
+    queueJobs.map(j => fetch(`${apiBaseUrl}/status/${j.job_id}`).then(r => r.json()).catch(() => null))
+  );
+
+  renderQueue(statuses);
+
+  // Ferma polling se tutti finiti
+  const allDone = statuses.every(s => s && (s.status === 'done' || s.status === 'error'));
+  if (allDone) { clearInterval(pollTimer); pollTimer = null; }
+}
+
+function renderQueue(statuses) {
+  const list = document.getElementById('jobsList');
+  const count = document.getElementById('queueCount');
+  count.textContent = `${queueJobs.length} video`;
+
+  if (queueJobs.length === 0) {
+    list.innerHTML = '<div class="queue-empty">Nessun video in coda</div>';
+    return;
+  }
+
+  list.innerHTML = queueJobs.map((job, i) => {
+    const s = statuses[i];
+    if (!s) return '';
+    const pct = s.progress || 0;
+    const isProcessing = s.status === 'processing';
+    const isDone = s.status === 'done';
+    const isError = s.status === 'error';
+    const isQueued = s.status === 'queued';
+
+    const icon = isDone
+      ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>`
+      : isError
+      ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`
+      : isProcessing
+      ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1.2s linear infinite"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>`
+      : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>`;
+
+    const badge = `<span class="status-badge ${s.status}">${s.status === 'queued' ? 'in coda' : s.status === 'processing' ? 'elaborazione' : s.status === 'done' ? '✓ pronto' : '✗ errore'}</span>`;
+
+    const dlBtn = isDone
+      ? `<a class="btn-dl" href="${apiBaseUrl}/download/${job.job_id}" download>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 15V3m0 12l-4-4m4 4l4-4M2 17l.621 2.485A2 2 0 004.56 21h14.878a2 2 0 001.94-1.515L22 17"/></svg>
+          Scarica
+        </a>` : '';
+
+    const translationPreview = (isDone && s.translation)
+      ? `<div class="translation-box show"><div class="translation-label">Testo tradotto</div><div class="translation-text">${escHtml(s.translation)}</div></div>` : '';
+
+    return `
+      <div class="job-item">
+        <div class="job-top">
+          <div class="job-thumb ${s.status}">${icon}</div>
+          <div class="job-info">
+            <div class="job-name">${escHtml(job.filename)}</div>
+            <div class="job-step">${s.step_name || '—'}</div>
+          </div>
+          ${badge}
+          <div class="job-actions">
+            ${dlBtn}
+            <button class="btn-del" onclick="removeJob('${job.job_id}')" title="Rimuovi">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="job-progress"><div class="job-progress-fill ${s.status}" style="width:${pct}%"></div></div>
+        ${translationPreview}
+      </div>`;
+  }).join('');
+}
+
+async function removeJob(jobId) {
+  try { await fetch(`${apiBaseUrl}/job/${jobId}`, { method: 'DELETE' }); } catch(e) {}
+  queueJobs = queueJobs.filter(j => j.job_id !== jobId);
+  if (queueJobs.length === 0) {
+    document.getElementById('queueCard').classList.remove('show');
+    document.getElementById('jobsList').innerHTML = '';
+    document.getElementById('queueCount').textContent = '0 video';
+  } else {
+    pollAllJobs();
+  }
+}
+
+function showError(msg) {
+  const b = document.getElementById('errorBox');
+  b.textContent = msg; b.classList.add('show');
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
