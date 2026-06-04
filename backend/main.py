@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from faster_whisper import WhisperModel
 import edge_tts
-from deep_translator import GoogleTranslator
+from deep_translator import GoogleTranslator, MyMemoryTranslator
 import ffmpeg
 
 # ── Config ──────────────────────────────────────────────
@@ -23,6 +23,7 @@ MAX_TEXT_CHARS    = 25_000
 JOB_TTL_HOURS     = 2
 WHISPER_MODEL     = "tiny"        # tiny = ~200MB RAM
 UNLOAD_AFTER_JOB  = True          # scarica modello dalla RAM dopo ogni job
+DEEPL_API_KEY     = ""  # riservato per uso futuro
 # ────────────────────────────────────────────────────────
 
 app = FastAPI(title="Doppiaggio IA API")
@@ -220,11 +221,11 @@ async def process_video(job_id: str, video_path: Path, voice: str, source_lang: 
                 temperature=0.0,
                 vad_filter=True,
             )
-            # Forza la valutazione del generatore lazy prima di liberare memoria
+            # Forza valutazione generatore lazy prima di liberare memoria
             chunk_text = " ".join(seg.text.strip() for seg in segments)
             full_transcript.append(chunk_text)
             if detect_lang is None:
-                detect_lang = info.language  # usa la lingua rilevata per i chunk successivi
+                detect_lang = info.language
             chunk_audio.unlink(missing_ok=True)
             # Libera memoria dopo ogni chunk
             import gc
@@ -357,14 +358,21 @@ def split_on_silence(video_path: Path, job_dir: Path, duration: float) -> list:
 def translate_text(text: str, detected_lang: str) -> str:
     if detected_lang == "it":
         return text
-    chunks = [text[i:i+4500] for i in range(0, len(text), 4500)]
+
+    # MyMemory — limite 500 caratteri per chunk (limite API)
+    chunks = [text[i:i+490] for i in range(0, len(text), 490)]
     translated = []
     for chunk in chunks:
         try:
-            t = GoogleTranslator(source="auto", target="it").translate(chunk)
+            t = MyMemoryTranslator(source="auto", target="it").translate(chunk)
             translated.append(t)
-        except Exception as e:
-            raise Exception(f"Traduzione fallita: {e}")
+        except Exception:
+            # Fallback su Google Translate se MyMemory fallisce
+            try:
+                t = GoogleTranslator(source="auto", target="it").translate(chunk)
+                translated.append(t)
+            except Exception as e:
+                raise Exception(f"Traduzione fallita: {e}")
     return " ".join(translated)
 
 def update_job(job_id, step=None, step_name=None, progress=None, status="processing"):
